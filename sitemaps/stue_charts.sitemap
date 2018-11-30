@@ -1,0 +1,6 @@
+sitemap stue_charts label="Stue Charts"
+{
+    Chart item=Multisensor1_SensorTemperature label="Temperatur Stue Day" refresh=60000 period=D
+    Chart item=Multisensor1_SensorTemperature label="Temperatur Stue Week" refresh=600000 period=W
+    Chart item=WallPlug1_SensorPower label="Forbruk Stue" refresh=60000 period=D
+}

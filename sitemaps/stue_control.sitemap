@@ -1,0 +1,24 @@
+sitemap stue_control label="Stue Temperatur"
+{
+    Frame label="Temperatur Control" {
+        Switch item=Stue_Temperature_Manual
+        Switch item=Stue_Temperature_Auto
+        Switch item=Stue_Temperature_AutoDayNight
+    }
+    Frame label="Current Setup"{
+        Text item=Multisensor1_SensorTemperature  label="Current temperature [%.1f °C]" visibility=[Stue_Temperature_Current_Visibility==ON]
+        Text item=Stue_Temperature_Current label="Current Setpoint [%.1f   C]" visibility=[Stue_Temperature_Current_Visibility==ON]
+    }
+
+    Frame label="Auto" visibility=[Stue_Temperature_Auto==ON]{
+        Setpoint item=Stue_Temperature_AutoSetpoint  minValue=5.0 maxValue=28.0 step=0.5
+    } 
+
+    Frame label="Auto Day Night" visibility=[Stue_Temperature_AutoDayNight==ON]{
+        Setpoint item=Stue_Temperature_MorningSetpoint  minValue=5.0 maxValue=28.0 step=0.5
+        Setpoint item=Stue_Temperature_DaySetpoint  minValue=5.0 maxValue=28.0 step=0.5
+        Setpoint item=Stue_Temperature_EveningSetpoint  minValue=5.0 maxValue=28.0 step=0.5
+        Setpoint item=Stue_Temperature_NightSetpoint  minValue=5.0 maxValue=28.0 step=0.5    
+    } 
+}
+

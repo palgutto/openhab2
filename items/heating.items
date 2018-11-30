@@ -1,0 +1,13 @@
+Switch Stue_Temperature_Auto "Auto Temp" <switch>
+Switch Stue_Temperature_AutoDayNight "Auto Day Night Temp" <switch>
+Switch Stue_Temperature_Manual "Manual Temp" <switch>
+
+Number Stue_Temperature_AutoSetpoint "Auto [%.1f   C]"
+
+Number Stue_Temperature_MorningSetpoint "Morning (06:00-08:00) [%.1f   C]"
+Number Stue_Temperature_DaySetpoint "Day (08:00-15:00) [%.1f   C]"
+Number Stue_Temperature_EveningSetpoint "Evening (15:00-22:00) [%.1f   C]"
+Number Stue_Temperature_NightSetpoint "Night (22:00-06:00) [%.1f   C]"
+
+Number Stue_Temperature_Current "Current [%.1f   C]"
+Switch Stue_Temperature_Current_Visibility

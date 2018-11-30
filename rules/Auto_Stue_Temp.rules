@@ -1,0 +1,175 @@
+
+rule "Auto_Stue_Temp"
+when
+    Item Stue_Temperature_Auto changed
+then
+    if( Stue_Temperature_Auto.state == ON ) {
+        Stue_Temperature_AutoDayNight.sendCommand(OFF)
+        Stue_Temperature_Manual.sendCommand(OFF)       
+    }
+end
+
+rule "Manual_Stue_Temp"
+when
+    Item Stue_Temperature_Manual changed
+then
+    if( Stue_Temperature_Manual.state == ON ) {
+        Stue_Temperature_AutoDayNight.sendCommand(OFF)
+        Stue_Temperature_Auto.sendCommand(OFF)
+    }
+end
+
+rule "AutoDayNight_Stue_Temp"
+when
+    Item Stue_Temperature_AutoDayNight changed
+then
+    if( Stue_Temperature_AutoDayNight.state == ON ) {
+        Stue_Temperature_Auto.sendCommand(OFF)
+        Stue_Temperature_Manual.sendCommand(OFF)       
+    }
+end
+
+rule "Manual_Temp"
+when
+    Item Stue_Temperature_Manual changed
+then
+    if(Stue_Temperature_Manual.state == ON) {
+        if(WallPlug1_Switch.state == OFF){
+            logInfo("Stue","Manual Temperature set WallPlug1_Switch to ON!")
+            WallPlug1_Switch.sendCommand(ON)
+        }
+    }
+    else{
+        if(WallPlug1_Switch.state == ON){
+            logInfo("Stue","Manual Temperature set WallPlug1_Switch to OFF!")
+            WallPlug1_Switch.sendCommand(OFF)
+        }
+    }
+end
+
+rule "Weekday"
+when
+    Time cron "0 0/1 * * * ?"   or // every minute
+    Item Stue_Temperature_AutoSetpoint changed or
+    Item Stue_Temperature_MorningSetpoint changed or
+    Item Stue_Temperature_DaySetpoint changed or
+    Item Stue_Temperature_EveningSetpoint changed or
+    Item Stue_Temperature_NightSetpoint changed or
+    Item Stue_Temperature_Manual changed or
+    Item Stue_Temperature_Auto changed or
+    Item Stue_Temperature_AutoDayNight changed
+then
+    if(Stue_Temperature_Manual.state == ON ) {
+        // Do nothing 
+    } 
+    else if(Stue_Temperature_Auto.state == ON) {
+        postUpdate(Stue_Temperature_Current, (Stue_Temperature_AutoSetpoint.state as DecimalType))
+        // logInfo("Stue", "Auto Setpoint changed")
+    }
+    else if(Stue_Temperature_AutoDayNight.state == ON) {
+        var Number hour = now.getHourOfDay	
+        // logInfo("Stue","Now hours of day =" + hour)
+        if (hour < 6) {
+            postUpdate(Stue_Temperature_Current, (Stue_Temperature_NightSetpoint.state as DecimalType))
+            // logInfo("Stue","Auto Weekday setpoint night!")
+        }
+        else if ((hour >= 6)  && (hour < 8)) {
+            postUpdate(Stue_Temperature_Current, (Stue_Temperature_MorningSetpoint.state as DecimalType))
+            // logInfo("Stue","Auto Weekday setpoint morning!")
+        }
+        else if ((hour >= 8)  && (hour < 15)) {
+            postUpdate(Stue_Temperature_Current, (Stue_Temperature_DaySetpoint.state as DecimalType))
+            // logInfo("Stue","Auto Weekday setpoint day!")
+        }
+        else if ((hour >= 15)  && (hour < 22)) {
+            postUpdate(Stue_Temperature_Current, (Stue_Temperature_EveningSetpoint.state as DecimalType))
+            // logInfo("Stue","Auto Weekday setpoint Evening!")
+        }
+        else{
+            postUpdate(Stue_Temperature_Current, (Stue_Temperature_NightSetpoint.state as DecimalType))
+            // logInfo("Stue","Auto Weekday setpoint night!")
+        }  
+    }
+    else  {
+        // No control, set contact off if not already
+        if(WallPlug1_Switch.state == ON){
+            logInfo("Stue","No control, setting WallPlug1_Switch to OFF!")
+            WallPlug1_Switch.sendCommand(OFF)
+        }
+    }
+end
+
+rule "Contact Control"
+when
+    Item Stue_Temperature_Current changed or
+    Time cron "0 0/1 * * * ?"  // every minute
+then
+    if(Multisensor1_SensorTemperature.state <= ((Stue_Temperature_Current.state as DecimalType)-0.2)) {
+        if(WallPlug1_Switch.state == OFF){
+            logInfo("Stue","Auto Temperature set WallPlug1_Switch to ON!")
+            WallPlug1_Switch.sendCommand(ON)
+        }
+    }
+    else if((Multisensor1_SensorTemperature.state as DecimalType) > ((Stue_Temperature_Current.state as DecimalType))){
+        if(WallPlug1_Switch.state == ON){
+            logInfo("Stue","Auto Temperature set WallPlug1_Switch to OFF!")
+            WallPlug1_Switch.sendCommand(OFF)
+        }
+    }
+end
+
+rule "Current Setpoint Visibility"
+when
+    Item Stue_Temperature_Auto changed or
+    Item Stue_Temperature_AutoDayNight changed
+then
+    if(Stue_Temperature_Auto.state == OFF && Stue_Temperature_AutoDayNight.state == OFF){
+        Stue_Temperature_Current_Visibility.sendCommand(OFF)
+    }
+    else{
+        Stue_Temperature_Current_Visibility.sendCommand(ON)
+    }
+end
+
+rule "Startup"
+when
+    System started
+then
+    if(Stue_Temperature_Current.state == null)
+    {
+        postUpdate(Stue_Temperature_Current, (Stue_Temperature_DaySetpoint.state as DecimalType))
+    }
+    // postUpdate(Stue_Temperature_Current_Visibility,ON)
+    // //if (Stue_Temperature_AutoSetpoint.state == null) {
+    //     postUpdate(Stue_Temperature_MorningSetpoint, 15.0)
+    // //}
+    // //if (Stue_Temperature_MorningSetpoint.state == null) {
+    //     postUpdate(Stue_Temperature_DaySetpoint, 15.0)
+    // //}
+    // //if (Stue_Temperature_DaySetpoint.state == null) {
+    //     postUpdate(Stue_Temperature_EveningSetpoint, 15.0)
+    // //}
+    // //if (Stue_Temperature_EveningSetpoint.state == null) {
+    //     postUpdate(Stue_Temperature_NightSetpoint, 15.0)
+    // //}
+end
+
+// rule "Auto_Temp"
+// when
+//     Item Multisensor1_SensorTemperature changed or
+//     Item Stue_Temperature_Auto changed or
+//     Item Stue_Temperature_AutoSetpoint changed
+// then
+//     // if(Stue_Temperature_Auto.state == ON) {
+//     //     postUpdate(Stue_Temperature_Current, (Stue_Temperature_AutoSetpoint.state as DecimalType))
+//     //     logInfo("Stue", "Updated Current Setpoint")
+//     //     if(Multisensor1_SensorTemperature.state <= ((Stue_Temperature_AutoSetpoint.state as DecimalType)-0.3)) {
+//     //         logInfo("Stue","Auto Temperature set WallPlug1_Switch to ON!")
+//     //         WallPlug1_Switch.sendCommand(ON)
+//     //     }
+//     //     else if((Multisensor1_SensorTemperature.state as DecimalType) > ((Stue_Temperature_AutoSetpoint.state as DecimalType))){
+//     //         logInfo("Stue","Auto Temperature set WallPlug1_Switch to OFF!")
+//     //         WallPlug1_Switch.sendCommand(OFF)
+//     //     }
+//     // }
+// end

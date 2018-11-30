@@ -1,0 +1,1 @@
+Switch LedParty {mqtt=">[mosquitto:bathroom/led1:command:ON:1],>[mosquitto:bathroom/led1:command:OFF:0]"}

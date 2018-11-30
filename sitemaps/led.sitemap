@@ -1,0 +1,7 @@
+sitemap stue_control label="Stue Temperatur"
+{
+    Frame label="Led" {
+        Switch item=LedParty
+    }
+}
+
